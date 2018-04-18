@@ -12,7 +12,7 @@
       </form>
     </li> -->
     <li class="right" v-if="loggedIn">
-       <router-link :to="{ name: 'UserPage', params: {userID: user.id}}">{{user.username}}</router-link> <a @click="logout" href="#">Logout</a></p>
+       <a @click="logout" href="#">Logout</a></p>
     </li>
     <li class="right" v-else>
       <form v-on:submit.prevent="login">

@@ -25,6 +25,20 @@ if (jwtSecret === undefined) {
   knex.destroy();
   process.exit();
 }
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization'];
+  if (!token)
+    return res.status(403).send({ error: 'No token provided.' });
+  jwt.verify(token, jwtSecret, function(err, decoded) {
+    if (err)
+      return res.status(500).send({ error: 'Failed to authenticate token.' });
+    // if everything good, save to request for use in other routes
+    req.userID = decoded.id;
+    next();
+  });
+}
+
 ///////////////////////////
 //GET entries functions////
 //////////////////////////
@@ -50,6 +64,15 @@ app.get('/api/users/:id', (req, res) => {
      res.status(500).json({ error });
    });
  });
+
+ // Get my account
+app.get('/api/me', verifyToken, (req,res) => {
+  knex('users').where('id',req.userID).first().select('username','name','id').then(user => {
+    res.status(200).json({user:user});
+  }).catch(error => {
+    res.status(500).json({ error });
+  });
+});
 ////////////////////
 //POST FUNCTIONS////
 ////////////////////
@@ -101,6 +124,10 @@ app.post('/api/users', (req, res) => {
     return knex('users').where('id',ids[0]).first();
   }).then(user => {
     res.status(200).json({user:user});
+    let token = jwt.sign({ id: user.id }, jwtSecret, {
+      expiresIn: 86400 // expires in 24 hours
+    });
+    res.status(200).json({user:user,token:token});
     return;
   }).catch(error => {
     if (error.message !== 'abort') {
@@ -110,8 +137,12 @@ app.post('/api/users', (req, res) => {
   });
 });
 
-app.post('/api/users/:id/entries', (req, res) => {
-  let id = parseInt(req.params.id);
+app.post('/api/users/:id/entries', verifyToken, (req, res) => {
+   let id = parseInt(req.params.id);
+  if (id !== req.userID) {
+    res.status(403).send();
+    return;
+  }
   knex('users').where('id',id).first().then(user => {
     return knex('entries').insert({user_id: id, entry:req.body.entry, created: new Date()});
   }).then(ids => {
