@@ -2,6 +2,9 @@
   <div id="app">
     <app-header/>
     <router-view/>
+    <p class="center">
+      Link to <a href="https://github.com/parallacks/creativeproj5">GitHub repo</a>
+    </p>
   </div>
 </template>
 
@@ -21,6 +24,9 @@
      font-family: 'Avenir', Helvetica, Arial, sans-serif;
      -webkit-font-smoothing: antialiased;
      -moz-osx-font-smoothing: grayscale;
+ }
+ .center{
+   text-align: center;
  }
  button {
      color: #fff;

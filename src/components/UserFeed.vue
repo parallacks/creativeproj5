@@ -53,11 +53,11 @@ export default {
 }
 
 .entryForm {
-  width: 50%;
-  background: #eee;
+  width: 75%;
+  background: #bbbbbb;
   padding: 10px;
   margin-bottom: 10px;
-  margin-left: 25%;
+  margin-left: 10%;
 
 }
 

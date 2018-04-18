@@ -1,7 +1,7 @@
 <template>
 <div>
   <div v-for="item in feed" class="item">
-    <p class="idline"><span class="user">{{item.name}}</span>
+    <p class="idline"><span class="user"></span>
       <span class="time">{{item.created | since}}</span></p>
     <p v-html="formatEntry(item.entry)" class="entry"></p>
   </div>
@@ -16,23 +16,28 @@ export default {
   props: ['feed'],
   filters: {
     since: function(datetime) {
-      moment.locale('en', {
-        relativeTime: {
-          future: 'in %s',
-          past: '%s',
-          s: 'seconds',
-          ss: '%ss',
-          m: '1m',
-          mm: '%dm',
-          h: 'h',
-          hh: '%dh',
-          d: 'd',
-          dd: '%dd',
-          M: ' month',
-          MM: '%dM',
-          y: 'a year',
-          yy: '%dY'
-        }
+      moment.updateLocale('en', {
+        months:[
+          "January", "February", "March", "April", "May", "June", "July",
+        "August", "September", "October", "November", "December"
+        ]
+
+        // relativeTime: {
+        //   future: 'in %s',
+        //   past: '%s',
+        //   s: 'seconds',
+        //   ss: '%ss',
+        //   m: '1m',
+        //   mm: '%dm',
+        //   h: 'h',
+        //   hh: '%dh',
+        //   d: 'd',
+        //   dd: '%dd',
+        //   M: ' month',
+        //   MM: '%dM',
+        //   y: 'a year',
+        //   yy: '%dY'
+        // }
       });
       return moment(datetime).fromNow();
     },
@@ -54,11 +59,14 @@ export default {
 }
 
 .entry {
-  background-color: white;
+  padding: 20px;
+  background-color: #547181;
+  color: white;
   margin-top: 0px;
 }
 
 .idline {
+
   margin-bottom: 0px;
 }
 

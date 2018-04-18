@@ -16,6 +16,15 @@ const knex = require('knex')(config);
 //bcrypt setup
 let bcrypt=require('bcrypt');
 const saltRounds=10;
+
+// jwt setup
+const jwt = require('jsonwebtoken');
+let jwtSecret = process.env.jwtSecret;
+if (jwtSecret === undefined) {
+  console.log("You need to define a jwtSecret environment variable to continue.");
+  knex.destroy();
+  process.exit();
+}
 ///////////////////////////
 //GET entries functions////
 //////////////////////////
@@ -31,79 +40,6 @@ app.get('/api/users/:id/entries', (req, res) => {
       res.status(500).json({ error });
     });
 });
-
-// app.get('/api/entries/search', (req, res) => {
-//   if (!req.query.keywords)
-//     return res.status(400).send();
-//   let offset = 0;
-//   if (req.query.offset)
-//     offset = parseInt(req.query.offset);
-//   let limit = 50;
-//   if (req.query.limit)
-//     limit = parseInt(req.query.limit);
-//   knex('users').join('entries','users.id','entries.user_id')
-//     .whereRaw("MATCH (entry) AGAINST('" + req.query.keywords + "')")
-//     .orderBy('created','desc')
-//     .limit(limit)
-//     .offset(offset)
-//     .select('entry','username','name','created','users.id as userID').then(entries => {
-//       res.status(200).json({entries:entries});
-//     }).catch(error => {
-//       res.status(500).json({ error });
-//     });
-// });
-//
-// app.get('/api/entries/hash/:hashtag', (req, res) => {
-//   let offset = 0;
-//   if (req.query.offset)
-//     offset = parseInt(req.query.offset);
-//   let limit = 50;
-//   if (req.query.limit)
-//     limit = parseInt(req.query.limit);
-//   knex('users').join('entries','users.id','entries.user_id')
-//     .whereRaw("entry REGEXP '^#" + req.params.hashtag + "' OR entry REGEXP ' #" + req.params.hashtag + "'")
-//     .orderBy('created','desc')
-//     .limit(limit)
-//     .offset(offset)
-//     .select('entry','username','name','created','users.id as userID').then(entries => {
-//       res.status(200).json({entries:entries});
-//     }).catch(error => {
-//       res.status(500).json({ error });
-//     });
-// });
-
-// get the entries of those you are following
-// use limit to limit the results to a certain number
-// // use offset to provide an offset into the results (e.g., starting at results number 10)
-// app.get('/api/users/:id/feed', (req,res) => {
-//   // id of the person we are interested in
-//   let id = parseInt(req.params.id);
-//   // offset into the results
-//   let offset = 0;
-//   if (req.query.offset)
-//     offset = parseInt(req.query.offset);
-//   // number of results we should return
-//   let limit = 50;
-//   if (req.query.limit)
-//     limit = parseInt(req.query.limit);
-//   // get people this person is following
-//   knex('followers').where('followers.user_id',id).then(followed => {
-//     // get entries from this users plus people this user follows
-//     let following = followed.map(entry=>entry.follows_id);
-//     following.push(id);
-//     return knex('entries').join('users','entries.user_id','users.id')
-//       .whereIn('entries.user_id',following)
-//       .orderBy('created','desc')
-//       .limit(limit)
-//       .offset(offset)
-//       .select('entry','username','name','created','users.id as userID');
-//   }).then(entries => {
-//     res.status(200).json({entries:entries});
-//   }).catch(error => {
-//     console.log(error);
-//     res.status(500).json({ error });
-//   });
-// });
 
 app.get('/api/users/:id', (req, res) => {
   let id = parseInt(req.params.id);
@@ -127,9 +63,12 @@ app.post('/api/login', (req, res) => {
     }
     return [bcrypt.compare(req.body.password, user.hash),user];
   }).spread((result,user) => {
-    if (result)
-      res.status(200).json({user:user});
-    else
+    if (result) {
+       let token = jwt.sign({ id: user.id }, jwtSecret, {
+        expiresIn: 86400 // expires in 24 hours
+       });
+      res.status(200).json({user:{username:user.username,name:user.name,id:user.id},token:token});
+    }else
       res.status(403).send("Invalid credentials");
     return;
   }).catch(error => {
