@@ -124,7 +124,7 @@ export default new Vuex.Store({
       context.commit('setUser', {});
       context.commit('setToken','');
     },
-    // Tweeting //
+    // submitting an entry//
     getFeed(context) {
       axios.get("/api/users/" + context.state.user.id + "/entries").then(response => {
         context.commit('setFeed', response.data.entries);
@@ -133,7 +133,7 @@ export default new Vuex.Store({
       });
     },
     addEntry(context, entry) {
-      axios.post("/api/users/" + context.state.user.id + "/tweets",tweet,getAuthHeader()).then(response => {
+      axios.post("/api/users/" + context.state.user.id + "/entries",entry,getAuthHeader()).then(response => {
         return context.dispatch('getFeed');
       }).catch(err => {
         console.log("addEntry failed:", err);
